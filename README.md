@@ -1,4 +1,4 @@
-# YAML Table for Obsidian
+# YAML Tables for Obsidian
 
 An Obsidian plugin that renders YAML code blocks as HTML tables for better visualization.
 
