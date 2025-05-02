@@ -10,14 +10,10 @@ import * as yaml from 'js-yaml';
 
 interface YAMLTableSettings {
 	language: string;
-	includeFrontMatter: boolean;
-	tableStyle: 'default' | 'compact' | 'wide';
 }
 
 const DEFAULT_SETTINGS: YAMLTableSettings = {
 	language: 'yaml-table',
-	includeFrontMatter: false,
-	tableStyle: 'default'
 }
 
 export default class YAMLTablePlugin extends Plugin {
@@ -25,17 +21,11 @@ export default class YAMLTablePlugin extends Plugin {
 
 	async onload() {
 		await this.loadSettings();
-
-		// Register processor for real-time preview
 		this.registerMarkdownCodeBlockProcessor(this.settings.language, this.yamlTableProcessor.bind(this));
-
-		// Settings tab
 		this.addSettingTab(new YAMLTableSettingTab(this.app, this));
 	}
 
-	onunload() {
-		// Plugin unload actions
-	}
+	onunload() {}
 
 	async loadSettings() {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
@@ -45,217 +35,187 @@ export default class YAMLTablePlugin extends Plugin {
 		await this.saveData(this.settings);
 	}
 
-	// Processor to convert YAML to HTML table
+	// Processor to convert YAML to HTML table or list
 	yamlTableProcessor(source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext) {
 		try {
-			// Parse YAML
 			const data = yaml.load(source);
-			
-			if (data === null || typeof data !== 'object') {
-				const errorDiv = document.createElement('div');
-				errorDiv.textContent = 'Error: No valid YAML data found.';
-				errorDiv.className = 'yaml-table-error';
-				el.appendChild(errorDiv);
-				return;
+
+			let renderedElement: HTMLElement | null = null;
+
+			if (Array.isArray(data)) {
+				// Handle top-level array data
+				renderedElement = this.createHTMLElementForArray(data);
+			} else if (data !== null && typeof data === 'object') {
+				// Handle top-level object data
+				renderedElement = this.createTableFromObject(data);
 			}
 
-			// Generate HTML table from data
-			const table = this.createTable(data);
-			
-			// Apply style classes
-			table.classList.add('yaml-table');
-			table.classList.add(`yaml-table-style-${this.settings.tableStyle}`);
-			
-			// Add the generated table to DOM
-			el.appendChild(table);
-			
-			// Add click event (click to return to source view)
-			const containerEl = document.createElement('div');
-			containerEl.className = 'yaml-table-container';
-			el.appendChild(containerEl);
-			containerEl.appendChild(table);
-			
-			containerEl.addEventListener('click', (event) => {
-				// Switch to code block editing mode
-				const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-				if (view) {
-					// Use the context of the block being rendered
-					const pos = ctx.getSectionInfo(el)?.lineStart || 0;
-					if (pos) {
-						view.editor.setCursor(pos);
-						view.editor.focus();
+			// Add .yaml-table class if the rendered element is a TABLE
+			if (renderedElement instanceof HTMLTableElement) {
+				renderedElement.classList.add('yaml-table');
+			}
+
+			if (renderedElement) {
+				// Add the generated element to DOM within a container for click handling
+				const containerEl = document.createElement('div');
+				containerEl.className = 'yaml-table-container'; // Keep container for consistent styling/handling
+				containerEl.appendChild(renderedElement);
+				el.appendChild(containerEl);
+
+				containerEl.addEventListener('click', (event) => {
+					// Switch to code block editing mode
+					const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+					if (view) {
+						const pos = ctx.getSectionInfo(el)?.lineStart;
+						if (pos !== undefined) { // Check if pos is defined
+							view.editor.setCursor(pos);
+							view.editor.focus();
+						}
 					}
-				}
-			});
-			
-		} catch (e) {
+				});
+			} else {
+				// Handle cases where data is not object/array or is empty
+				const infoDiv = document.createElement('div');
+				infoDiv.textContent = 'No data to display or unsupported data type.';
+				infoDiv.className = 'yaml-table-info'; // Use a different class for info messages
+				el.appendChild(infoDiv);
+			}
+
+		} catch (e: unknown) { // Use unknown for better type safety
 			// Error handling
 			const errorDiv = document.createElement('div');
-			errorDiv.textContent = `YAML parsing error: ${e.message}`;
+			if (e instanceof Error) {
+				errorDiv.textContent = `YAML parsing error: ${e.message}`;
+			} else {
+				errorDiv.textContent = `An unknown error occurred during YAML processing.`;
+			}
 			errorDiv.className = 'yaml-table-error';
 			el.appendChild(errorDiv);
 		}
 	}
 
-	// Generate table according to data
-	createTable(data: any): HTMLElement {
+	// Creates a TABLE element specifically for JS objects (key-value pairs)
+	createTableFromObject(data: object): HTMLTableElement | null {
+		if (Object.keys(data).length === 0) {
+			return null; // Return null for empty objects
+		}
+
 		const table = document.createElement('table');
-		
-		// Create table structure based on data type
-		if (Array.isArray(data)) {
-			// Special handling for array data
-			this.createArrayTable(data, table);
-		} else {
-			// Create header only for object type data if needed
-			const thead = document.createElement('thead');
-			table.appendChild(thead);
-			
-			// Create table body
-			const tbody = document.createElement('tbody');
-			table.appendChild(tbody);
-			
-			// Process each key-value pair for objects
-			for (const key in data) {
-				const row = document.createElement('tr');
-				tbody.appendChild(row);
-				
-				const keyCell = document.createElement('td');
+		const tbody = table.createTBody();
+
+		for (const key in data) {
+			if (Object.prototype.hasOwnProperty.call(data, key)) {
+				const row = tbody.insertRow();
+
+				const keyCell = document.createElement('th');
+				keyCell.setAttribute('scope', 'row');
 				keyCell.textContent = key;
 				row.appendChild(keyCell);
-				
-				const valueCell = document.createElement('td');
-				row.appendChild(valueCell);
-				this.renderValue(data[key], valueCell);
+
+				const valueCell = row.insertCell();
+				// Explicitly pass the object's value to renderValue
+				this.renderValue((data as any)[key], valueCell);
 			}
 		}
-		
 		return table;
 	}
 
-	// Table generation specifically for arrays
-	createArrayTable(data: any[], table: HTMLElement) {
+	// Creates a TABLE (for object arrays) or UL (for simple arrays)
+	createHTMLElementForArray(data: any[]): HTMLElement | null {
 		if (data.length === 0) {
-			return;
+			// Optionally return an element indicating emptiness, or null
+			const emptyMsg = document.createElement('span');
+			emptyMsg.textContent = '(empty array)';
+			return emptyMsg;
+			// return null; // Or return null if nothing should be displayed
 		}
-		
-		// Check if the first element is an object
-		const isObjectArray = data[0] && typeof data[0] === 'object' && !Array.isArray(data[0]);
-		
+
+		const firstItem = data[0];
+		const isObjectArray = firstItem !== null && typeof firstItem === 'object' && !Array.isArray(firstItem);
+
 		if (isObjectArray) {
-			// For arrays of objects, create headers from object keys
-			
-			// Create header if it doesn't exist
-			let thead = table.querySelector('thead');
-			if (!thead) {
-				thead = document.createElement('thead');
-				table.appendChild(thead);
-			}
-			
-			const headerRow = document.createElement('tr');
-			thead.appendChild(headerRow);
-			
+			// Array of objects -> create table
+			const table = document.createElement('table');
 			// Collect unique keys from all objects
 			const keys = new Set<string>();
 			data.forEach(item => {
-				Object.keys(item).forEach(key => keys.add(key));
+				if (item && typeof item === 'object') {
+					Object.keys(item).forEach(key => keys.add(key));
+				}
 			});
-			
-			// Add keys to header row
+
+			if (keys.size === 0) return null; // No keys found
+
+			// Create header
+			const thead = table.createTHead();
+			const headerRow = thead.insertRow();
 			keys.forEach(key => {
 				const th = document.createElement('th');
 				th.textContent = key;
 				headerRow.appendChild(th);
 			});
-			
+
 			// Create table body
-			let tbody = table.querySelector('tbody');
-			if (!tbody) {
-				tbody = document.createElement('tbody');
-				table.appendChild(tbody);
-			}
-			
-			// Add each object's data as a row
+			const tbody = table.createTBody();
 			data.forEach(item => {
-				const row = document.createElement('tr');
-				tbody.appendChild(row);
-				
-				// Add values for each key
-				keys.forEach(key => {
-					const cell = document.createElement('td');
-					row.appendChild(cell);
-					if (key in item) {
-						this.renderValue(item[key], cell);
-					}
-				});
+				if (item && typeof item === 'object') { // Ensure item is an object
+					const row = tbody.insertRow();
+					keys.forEach(key => {
+						const cell = row.insertCell();
+						if (key in item) {
+							this.renderValue((item as any)[key], cell);
+						} else {
+							cell.textContent = ''; // Blank for missing keys
+						}
+					});
+				}
+				// Optionally handle non-object items in the array if needed
 			});
+			return table;
+
 		} else {
-			// For arrays of simple values, display as a list
-			let tbody = table.querySelector('tbody');
-			if (!tbody) {
-				tbody = document.createElement('tbody');
-				table.appendChild(tbody);
-			}
-			
-			const row = document.createElement('tr');
-			tbody.appendChild(row);
-			
-			const cell = document.createElement('td');
-			row.appendChild(cell);
-			
+			// Array of simple values -> create list
 			const list = document.createElement('ul');
-			cell.appendChild(list);
-			
 			data.forEach(item => {
 				const li = document.createElement('li');
+				this.renderValue(item, li); // Render each item
 				list.appendChild(li);
-				this.renderValue(item, li);
 			});
+			return list;
 		}
 	}
 
-	// Render based on value type
+	// Renders a value (primitive, object, or array) into a given container element
 	renderValue(value: any, container: HTMLElement) {
 		if (value === null || value === undefined) {
-			container.textContent = '';
-		} else if (typeof value === 'object' && !Array.isArray(value)) {
-			// For objects, create a nested table
-			const nestedTable = this.createTable(value);
-			container.appendChild(nestedTable);
+			container.textContent = ''; // Render null/undefined as empty
 		} else if (Array.isArray(value)) {
-			// For arrays
-			if (value.length === 0) {
-				container.textContent = '(empty array)';
-			} else if (typeof value[0] === 'object' && !Array.isArray(value[0])) {
-				// For arrays of objects, create a dedicated table
-				const nestedTable = document.createElement('table');
-				this.createArrayTable(value, nestedTable);
+			// Value is an array -> render as nested table or list
+			const nestedElement = this.createHTMLElementForArray(value);
+			if (nestedElement) {
+				container.appendChild(nestedElement);
+			} else {
+				// Handle case where array resulted in null (e.g., empty array)
+				container.textContent = '(empty array)'; // Or customize this message
+			}
+		} else if (typeof value === 'object') {
+			// Value is an object -> render as nested table
+			const nestedTable = this.createTableFromObject(value);
+			if (nestedTable) {
+				// No need to add 'yaml-nested-table' class anymore
 				container.appendChild(nestedTable);
 			} else {
-				// For arrays of simple values, create a list
-				const list = document.createElement('ul');
-				container.appendChild(list);
-				
-				// Add list items
-				value.forEach(item => {
-					const li = document.createElement('li');
-					list.appendChild(li);
-					
-					// For simple values
-					if (typeof item !== 'object' || item === null) {
-						li.textContent = String(item);
-					} else {
-						this.renderValue(item, li);
-					}
-				});
+				// Handle case where object resulted in null (e.g., empty object)
+				container.textContent = '(empty object)'; // Or customize
 			}
 		} else {
-			// For simple values, display as text
+			// Handle simple values (string, number, boolean)
 			container.textContent = String(value);
 		}
 	}
 }
 
-// Settings tab
+// Settings tab (No changes needed here for now)
 class YAMLTableSettingTab extends PluginSettingTab {
 	plugin: YAMLTablePlugin;
 
@@ -266,9 +226,7 @@ class YAMLTableSettingTab extends PluginSettingTab {
 
 	display(): void {
 		const {containerEl} = this;
-
 		containerEl.empty();
-
 		containerEl.createEl('h2', {text: 'YAML Table Settings'});
 
 		new Setting(containerEl)
@@ -278,31 +236,10 @@ class YAMLTableSettingTab extends PluginSettingTab {
 				.setPlaceholder('yaml-table')
 				.setValue(this.plugin.settings.language)
 				.onChange(async (value) => {
-					this.plugin.settings.language = value;
-					await this.plugin.saveSettings();
-				}));
-
-		new Setting(containerEl)
-			.setName('Include front matter')
-			.setDesc('Also render YAML front matter as tables')
-			.addToggle(toggle => toggle
-				.setValue(this.plugin.settings.includeFrontMatter)
-				.onChange(async (value) => {
-					this.plugin.settings.includeFrontMatter = value;
-					await this.plugin.saveSettings();
-				}));
-
-		new Setting(containerEl)
-			.setName('Table style')
-			.setDesc('Visual style for rendered tables')
-			.addDropdown(dropdown => dropdown
-				.addOption('default', 'Default')
-				.addOption('compact', 'Compact')
-				.addOption('wide', 'Wide')
-				.setValue(this.plugin.settings.tableStyle)
-				.onChange(async (value: 'default' | 'compact' | 'wide') => {
-					this.plugin.settings.tableStyle = value;
-					await this.plugin.saveSettings();
+					if (value.trim()) {
+						this.plugin.settings.language = value.trim();
+						await this.plugin.saveSettings();
+					}
 				}));
 	}
 }

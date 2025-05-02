@@ -1,119 +1,125 @@
 /* YAML Table プラグインのスタイル */
 
-/* 基本テーブルスタイル */
+/* 基本テーブルスタイル (.yaml-table が適用された最上位のテーブル) */
 .yaml-table {
-  border-collapse: separate;
-  border-spacing: 0;
+  border-collapse: collapse;
   width: 100%;
-  margin: 10px 0;
+  margin: 0; /* 上下左右のマージンを削除 */
   font-size: 0.9em;
-  background-color: #ffffff;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--background-modifier-border, #e0e0e0); /* Obsidianの枠線色変数を使用 */
   border-radius: 4px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  overflow: hidden; /* ボーダー半径を適用するため */
+  background-color: var(--background-primary, #ffffff); /* Obsidianの背景色変数を使用 */
 }
 
+/* 全てのテーブルセル (th, td) の基本スタイル */
 .yaml-table th,
 .yaml-table td {
   padding: 8px 12px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--background-modifier-border, #e0e0e0);
   text-align: left;
+  vertical-align: top;
+  color: var(--text-normal, #333333); /* Obsidianの文字色変数を使用 */
+  background-color: transparent; /* 基本は透過、必要な箇所で上書き */
 }
 
+/* テーブルヘッダーセル (th) の共通スタイル */
 .yaml-table th {
-  background-color: #f0f2f5;
-  color: #5c6781;
   font-weight: bold;
-  border-bottom: 1px solid #e0e0e0;
+  background-color: var(--background-secondary-alt, hsl(var(--accent-h), 60%, 95%)) !important; /* !important を追加 */
+  color: var(--text-muted, hsl(var(--accent-h), 15%, 40%)); /* アクセント基準の少し濃い色かMuted */
+}
+/* トップレベルテーブルのキー列ヘッダー (tbody > tr > th) */
+.yaml-table > tbody > tr > th {
+    /* 必要であればトップレベルのキー列に特化したスタイルを追加 */
+    /* width: 150px; */ /* 例: キー列の幅を固定 */
+    /* background-color: ... !important; もし上記で不足ならここにも追加 */
 }
 
-/* ネストしたテーブル用のスタイル */
+
+/* ネストしたテーブルのスタイル (.yaml-table の中にある table) */
 .yaml-table table {
   width: 100%;
-  margin: 0;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
-  overflow: hidden;
+  margin: 4px 0; /* ネストしたテーブルの上下に少しマージンを追加 */
+  border: 1px solid var(--background-modifier-border, #e0e0e0); /* ネストしたテーブルに外枠を追加 */
+  border-collapse: collapse;
+  border-radius: 0; /* ネストしたテーブルは角丸なし */
+  overflow: visible;
+  background-color: transparent; /* 親セルの背景を継承 */
 }
 
-/* セルのスタイル */
-.yaml-table td {
-  background-color: #ffffff;
-  color: #333;
-  vertical-align: top;
+/* ネストしたテーブル内のセル (th, td) のスタイル調整 */
+.yaml-table table th,
+.yaml-table table td {
+  padding: 6px 10px; /* 少しパディングを狭く */
+  border: 1px solid var(--background-modifier-border, #e0e0e0); /* セルに上下左右の罫線を追加 */
+  background-color: transparent; /* 基本は透過 */
+  color: var(--text-normal, #333333); /* 文字色は通常 */
+}
+
+/* ネストしたテーブルのヘッダーセル (th) */
+.yaml-table table th {
+    /* font-weight: bold; は継承されるはず */
+    color: var(--text-muted, hsl(var(--accent-h), 15%, 40%)); /* 文字色は少し抑えめに */
+}
+
+/* ネストしたオブジェクト配列テーブルのヘッダー (thead th) */
+.yaml-table td > table > thead > tr > th {
+    background-color: var(--background-secondary-alt, hsl(var(--accent-h), 60%, 95%)) !important; /* !important を追加 */
+    color: var(--text-muted, hsl(var(--accent-h), 15%, 40%)); /* 文字色も念のため指定 */
+    /* border-color と border-style も明示的に指定してみる (オプション) */
+    /* border-color: var(--background-modifier-border, #e0e0e0); */
+    /* border-style: solid; */
+    /* border-width: 1px; */
+}
+
+/* ネストしたオブジェクトテーブルのキー列ヘッダー (tbody th[scope="row"]) */
+.yaml-table table tbody th[scope="row"] {
+    background-color: var(--background-secondary-alt, hsl(var(--accent-h), 60%, 95%)) !important; /* !important を追加 */
+    color: var(--text-muted, hsl(var(--accent-h), 15%, 40%)); /* 文字色も念のため指定 */
+    /* border-color と border-style も明示的に指定してみる (オプション) */
+    /* border-color: var(--background-modifier-border, #e0e0e0); */
+    /* border-style: solid; */
+    /* border-width: 1px; */
+}
+
+/* ネストしたテーブルの最後の行の下線を消す */
+.yaml-table table tr:last-child th,
+.yaml-table table tr:last-child td {
+  border-bottom: none;
 }
 
 /* リストのスタイル */
 .yaml-table ul,
 .yaml-table ol {
-  margin: 0;
-  padding-left: 20px;
+  margin: 4px 0; /* td直下リストのマージン */
+  padding-left: 1.2em;
+  list-style-position: inside;
 }
-
 .yaml-table ul li,
 .yaml-table ol li {
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
-
-/* コンパクトスタイル */
-.yaml-table-style-compact th,
-.yaml-table-style-compact td {
-  padding: 4px 8px;
-  font-size: 0.85em;
-}
-
-/* ワイドスタイル */
-.yaml-table-style-wide th,
-.yaml-table-style-wide td {
-  padding: 10px 16px;
+/* ネストしたリストの調整 */
+.yaml-table ul ul,
+.yaml-table ul ol,
+.yaml-table ol ol,
+.yaml-table ol ul {
+  margin: 2px 0 2px 1em; /* 上下マージンと左インデント */
 }
 
 /* エラーメッセージのスタイル */
 .yaml-table-error {
-  color: #d32f2f;
+  color: var(--text-error, #d32f2f);
   padding: 10px;
-  border: 1px solid #ffcdd2;
+  border: 1px solid var(--background-error, #ffcdd2);
   border-radius: 4px;
-  background-color: #ffebee;
+  background-color: var(--background-primary-alt, #ffebee); /* 少し背景色をつける */
+  margin: 1em 0;
 }
 
 /* テーブルコンテナ */
 .yaml-table-container {
-  cursor: pointer;
-}
-
-/* ネストされたテーブルの調整 - 画像のデザインに合わせる */
-.yaml-table table {
-  border-collapse: separate;
-  border-spacing: 0;
-}
-
-/* テーブルのヘッダー行 */
-.yaml-table thead tr th:first-child {
-  border-top-left-radius: 4px;
-}
-
-.yaml-table thead tr th:last-child {
-  border-top-right-radius: 4px;
-}
-
-/* 最上位のテーブルセル */
-.yaml-table > tbody > tr > td {
-  background-color: #f8f9fa;
-}
-
-/* ネストされたテーブルのセル */
-.yaml-table table td {
-  background-color: #ffffff;
-}
-
-/* テーブル内のテーブルヘッダー */
-.yaml-table table th {
-  background-color: #f0f2f5;
-}
-
-/* ホバーエフェクトの削除 */
-.yaml-table-container:hover {
-  background-color: transparent;
+  cursor: default;
+  margin-bottom: 1em; /* コードブロック下の要素との間隔 */
 }
