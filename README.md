@@ -48,11 +48,9 @@ tasks:
 
 ## Settings
 
-The plugin settings offer the following options:
+The plugin settings offer the following option:
 
 - **Code block language**: Language identifier for YAML code blocks to be rendered as tables (default: `yaml-table`)
-- **Include front matter**: Whether to also render YAML front matter as tables
-- **Table style**: Visual style for rendered tables (Default/Compact/Wide)
 
 ## Examples
 
