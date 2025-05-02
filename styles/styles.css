@@ -1,0 +1,119 @@
+/* YAML Table プラグインのスタイル */
+
+/* 基本テーブルスタイル */
+.yaml-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  margin: 10px 0;
+  font-size: 0.9em;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.yaml-table th,
+.yaml-table td {
+  padding: 8px 12px;
+  border: 1px solid #e0e0e0;
+  text-align: left;
+}
+
+.yaml-table th {
+  background-color: #f0f2f5;
+  color: #5c6781;
+  font-weight: bold;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+/* ネストしたテーブル用のスタイル */
+.yaml-table table {
+  width: 100%;
+  margin: 0;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+/* セルのスタイル */
+.yaml-table td {
+  background-color: #ffffff;
+  color: #333;
+  vertical-align: top;
+}
+
+/* リストのスタイル */
+.yaml-table ul,
+.yaml-table ol {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.yaml-table ul li,
+.yaml-table ol li {
+  margin-bottom: 4px;
+}
+
+/* コンパクトスタイル */
+.yaml-table-style-compact th,
+.yaml-table-style-compact td {
+  padding: 4px 8px;
+  font-size: 0.85em;
+}
+
+/* ワイドスタイル */
+.yaml-table-style-wide th,
+.yaml-table-style-wide td {
+  padding: 10px 16px;
+}
+
+/* エラーメッセージのスタイル */
+.yaml-table-error {
+  color: #d32f2f;
+  padding: 10px;
+  border: 1px solid #ffcdd2;
+  border-radius: 4px;
+  background-color: #ffebee;
+}
+
+/* テーブルコンテナ */
+.yaml-table-container {
+  cursor: pointer;
+}
+
+/* ネストされたテーブルの調整 - 画像のデザインに合わせる */
+.yaml-table table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+/* テーブルのヘッダー行 */
+.yaml-table thead tr th:first-child {
+  border-top-left-radius: 4px;
+}
+
+.yaml-table thead tr th:last-child {
+  border-top-right-radius: 4px;
+}
+
+/* 最上位のテーブルセル */
+.yaml-table > tbody > tr > td {
+  background-color: #f8f9fa;
+}
+
+/* ネストされたテーブルのセル */
+.yaml-table table td {
+  background-color: #ffffff;
+}
+
+/* テーブル内のテーブルヘッダー */
+.yaml-table table th {
+  background-color: #f0f2f5;
+}
+
+/* ホバーエフェクトの削除 */
+.yaml-table-container:hover {
+  background-color: transparent;
+}
