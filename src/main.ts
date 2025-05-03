@@ -47,7 +47,7 @@ export default class YAMLTablePlugin extends Plugin {
 				renderedElement = this.createHTMLElementForArray(data);
 			} else if (data !== null && typeof data === 'object') {
 				// Handle top-level object data
-				renderedElement = this.createTableFromObject(data);
+				renderedElement = this.createTableFromObject(data as Record<string, unknown>);
 			}
 
 			// Add .yaml-table class if the rendered element is a TABLE
@@ -95,7 +95,7 @@ export default class YAMLTablePlugin extends Plugin {
 	}
 
 	// Creates a TABLE element specifically for JS objects (key-value pairs)
-	createTableFromObject(data: object): HTMLTableElement | null {
+	createTableFromObject(data: Record<string, unknown>): HTMLTableElement | null {
 		if (Object.keys(data).length === 0) {
 			return null; // Return null for empty objects
 		}
@@ -114,14 +114,14 @@ export default class YAMLTablePlugin extends Plugin {
 
 				const valueCell = row.insertCell();
 				// Explicitly pass the object's value to renderValue
-				this.renderValue((data as any)[key], valueCell);
+				this.renderValue(data[key], valueCell);
 			}
 		}
 		return table;
 	}
 
 	// Creates a TABLE (for object arrays) or UL (for simple arrays)
-	createHTMLElementForArray(data: any[]): HTMLElement | null {
+	createHTMLElementForArray(data: unknown[]): HTMLElement | null {
 		if (data.length === 0) {
 			// Optionally return an element indicating emptiness, or null
 			const emptyMsg = document.createElement('span');
@@ -139,7 +139,7 @@ export default class YAMLTablePlugin extends Plugin {
 			// Collect unique keys from all objects
 			const keys = new Set<string>();
 			data.forEach(item => {
-				if (item && typeof item === 'object') {
+				if (typeof item === 'object' && item !== null) {
 					Object.keys(item).forEach(key => keys.add(key));
 				}
 			});
@@ -158,12 +158,13 @@ export default class YAMLTablePlugin extends Plugin {
 			// Create table body
 			const tbody = table.createTBody();
 			data.forEach(item => {
-				if (item && typeof item === 'object') { // Ensure item is an object
+				if (typeof item === 'object' && item !== null) { // Ensure item is an object
 					const row = tbody.insertRow();
+					const itemRecord = item as Record<string, unknown>; // Cast to access properties safely
 					keys.forEach(key => {
 						const cell = row.insertCell();
-						if (key in item) {
-							this.renderValue((item as any)[key], cell);
+						if (Object.prototype.hasOwnProperty.call(itemRecord, key)) {
+							this.renderValue(itemRecord[key], cell);
 						} else {
 							cell.textContent = ''; // Blank for missing keys
 						}
@@ -186,7 +187,7 @@ export default class YAMLTablePlugin extends Plugin {
 	}
 
 	// Renders a value (primitive, object, or array) into a given container element
-	renderValue(value: any, container: HTMLElement) {
+	renderValue(value: unknown, container: HTMLElement) {
 		if (value === null || value === undefined) {
 			container.textContent = ''; // Render null/undefined as empty
 		} else if (Array.isArray(value)) {
@@ -198,9 +199,9 @@ export default class YAMLTablePlugin extends Plugin {
 				// Handle case where array resulted in null (e.g., empty array)
 				container.textContent = '(empty array)'; // Or customize this message
 			}
-		} else if (typeof value === 'object') {
+		} else if (typeof value === 'object' && value !== null) {
 			// Value is an object -> render as nested table
-			const nestedTable = this.createTableFromObject(value);
+			const nestedTable = this.createTableFromObject(value as Record<string, unknown>);
 			if (nestedTable) {
 				// No need to add 'yaml-nested-table' class anymore
 				container.appendChild(nestedTable);

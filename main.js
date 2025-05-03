@@ -2739,7 +2739,7 @@ var YAMLTablePlugin = class extends import_obsidian.Plugin {
       const table = document.createElement("table");
       const keys = new Set();
       data.forEach((item) => {
-        if (item && typeof item === "object") {
+        if (typeof item === "object" && item !== null) {
           Object.keys(item).forEach((key) => keys.add(key));
         }
       });
@@ -2754,12 +2754,13 @@ var YAMLTablePlugin = class extends import_obsidian.Plugin {
       });
       const tbody = table.createTBody();
       data.forEach((item) => {
-        if (item && typeof item === "object") {
+        if (typeof item === "object" && item !== null) {
           const row = tbody.insertRow();
+          const itemRecord = item;
           keys.forEach((key) => {
             const cell = row.insertCell();
-            if (key in item) {
-              this.renderValue(item[key], cell);
+            if (Object.prototype.hasOwnProperty.call(itemRecord, key)) {
+              this.renderValue(itemRecord[key], cell);
             } else {
               cell.textContent = "";
             }
@@ -2787,7 +2788,7 @@ var YAMLTablePlugin = class extends import_obsidian.Plugin {
       } else {
         container.textContent = "(empty array)";
       }
-    } else if (typeof value === "object") {
+    } else if (typeof value === "object" && value !== null) {
       const nestedTable = this.createTableFromObject(value);
       if (nestedTable) {
         container.appendChild(nestedTable);
