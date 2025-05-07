@@ -10,10 +10,6 @@ An Obsidian plugin that renders YAML code blocks as HTML tables for better visua
   - Simple key-value pairs
   - Lists (both simple values and object lists)
   - Nested objects
-- Customizable settings:
-  - Code block language identifier
-  - Option to include YAML frontmatter
-  - Table style selection
 
 ## Usage
 
@@ -24,9 +20,9 @@ An Obsidian plugin that renders YAML code blocks as HTML tables for better visua
 title: Project Plan
 tasks:
   - name: Task 1
-    due: 2023-06-01
+    due: 2025-05-05
   - name: Task 2
-    due: 2023-06-15
+    due: 2025-05-07
 ```
 ````
 
@@ -37,9 +33,9 @@ tasks:
 title: Project Plan
 tasks:
   - name: Task 1
-    due: 2023-06-01
+    due: 2025-05-05
   - name: Task 2
-    due: 2023-06-15
+    due: 2025-05-07
 ```
 ````
 
@@ -55,8 +51,8 @@ tasks:
 4. Install and enable the plugin
 
 ### Manual Installation
-1. Download the latest release `yaml-table.zip` from the releases
-2. Extract it to your Obsidian vault's `.obsidian/plugins/` directory
+1. Download the latest release `main.js` `styles.css` and `manifest.json` from the releases
+2. Put them to your Obsidian vault's `.obsidian/plugins/yaml-table` directory
 3. Restart Obsidian and enable the plugin in settings
 
 ## Settings
@@ -71,8 +67,8 @@ The plugin settings offer the following option:
 
 ```yaml-table
 title: blog_idea_parking_lot
-author: dainakai
-date: 2023-06-01
+author: hogehoge
+date: 2025-05-07
 ```
 
 ### List of Objects with Caption
@@ -81,9 +77,9 @@ date: 2023-06-01
 ```yaml-table: Table 2. Event Schedule
 schedule:
   - time: Mid-May
-    action: Publish blog post
+    action: Event A
   - time: Late May
-    action: Host event
+    action: Event B
 ```
 ````
 
@@ -92,11 +88,11 @@ schedule:
 ```yaml-table
 project:
   name: YAML Table Plugin
-  version: 1.0.0
+  version: 1.1.0
   features:
     - table rendering
-    - live preview
-    - customizable styles
+    - hogehoge
+    - hogehoge
 ```
 
 ## License
@@ -116,6 +112,6 @@ This plugin is released under the MIT License.
 
 ### Testing in Obsidian
 1. Build the plugin using `npm run build`
-2. Copy `main.js`, `manifest.json`, and `styles/styles.css` to your Obsidian vault's plugins directory:
+2. Copy `main.js`, `manifest.json`, and `styles.css` to your Obsidian vault's plugins directory:
    `.obsidian/plugins/yaml-table/`
 3. Enable the plugin in Obsidian settings

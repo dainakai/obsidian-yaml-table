@@ -2799,6 +2799,12 @@ var YAMLTablePlugin = class extends import_obsidian.Plugin {
     }
   }
   renderValue(value, container, sourcePath, component) {
+    if (Array.isArray(value) && value.length === 1 && Array.isArray(value[0]) && value[0].length === 1 && typeof value[0][0] === "string") {
+      const linkText = value[0][0];
+      const markdownString = `[[${linkText}]]`;
+      import_obsidian.MarkdownRenderer.renderMarkdown(markdownString, container, sourcePath, component);
+      return;
+    }
     if (value === null || value === void 0) {
       container.textContent = "";
     } else if (Array.isArray(value)) {
@@ -2816,7 +2822,17 @@ var YAMLTablePlugin = class extends import_obsidian.Plugin {
         container.textContent = "(empty object)";
       }
     } else {
-      import_obsidian.MarkdownRenderer.renderMarkdown(String(value), container, sourcePath, component);
+      let markdownString = String(value);
+      if (typeof value === "string") {
+        if (value.startsWith("[[") && value.endsWith("]]")) {
+        } else {
+          const listItemMatch = value.match(/^\s*([-*+])\s+(.*)$/);
+          if (listItemMatch && !value.includes("\\n")) {
+            markdownString = listItemMatch[2];
+          }
+        }
+      }
+      import_obsidian.MarkdownRenderer.renderMarkdown(markdownString, container, sourcePath, component);
     }
   }
 };

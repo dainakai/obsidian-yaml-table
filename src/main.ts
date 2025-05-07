@@ -212,6 +212,23 @@ export default class YAMLTablePlugin extends Plugin {
 
 	// Renders a value (primitive, object, or array) into a given container element
 	renderValue(value: unknown, container: HTMLElement, sourcePath: string, component: Component) {
+		// Check for Obsidian link pattern parsed as nested array: e.g., [[Link Text]] becomes [['Link Text']]
+		if (
+			Array.isArray(value) &&
+			value.length === 1 &&
+			Array.isArray(value[0]) &&
+			value[0].length === 1 &&
+			typeof value[0][0] === 'string'
+			// We don't need to check if value[0][0] looks like a link,
+			// because the user explicitly wrote [[Link Text]] in YAML.
+			// We just reconstruct it as a Markdown link.
+		) {
+			const linkText = value[0][0];
+			const markdownString = `[[${linkText}]]`;
+			MarkdownRenderer.renderMarkdown(markdownString, container, sourcePath, component);
+			return; // Early exit after rendering the link
+		}
+
 		if (value === null || value === undefined) {
 			container.textContent = ''; // Render null/undefined as empty
 		} else if (Array.isArray(value)) {
@@ -235,7 +252,21 @@ export default class YAMLTablePlugin extends Plugin {
 			}
 		} else {
 			// Handle simple values (string, number, boolean)
-			MarkdownRenderer.renderMarkdown(String(value), container, sourcePath, component);
+			let markdownString = String(value);
+			if (typeof value === 'string') {
+				// Check if it's an Obsidian link
+				if (value.startsWith('[[') && value.endsWith(']]')) {
+					// Keep it as is for Obsidian link, do nothing to markdownString
+				} else {
+					// Match single-line list items (e.g., "- item", "* item", "+ item")
+					// and do not contain newlines
+					const listItemMatch = value.match(/^\s*([-*+])\s+(.*)$/);
+					if (listItemMatch && !value.includes('\\n')) {
+						markdownString = listItemMatch[2]; // Use only the content part
+					}
+				}
+			}
+			MarkdownRenderer.renderMarkdown(markdownString, container, sourcePath, component);
 		}
 	}
 }
