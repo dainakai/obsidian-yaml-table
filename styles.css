@@ -123,3 +123,19 @@
   cursor: default;
   margin-bottom: 1em; /* コードブロック下の要素との間隔 */
 }
+
+/* テーブルキャプションのスタイル */
+.yaml-table-caption {
+  text-align: center;
+  font-weight: bold;
+  padding: 8px 0 0 0;
+  margin-bottom: 0px; /* キャプションとテーブルの間のマージンを調整 */
+  color: var(--text-normal, #333333);
+  font-size: 1.1em; /* 少し大きめのフォントサイズ */
+}
+
+/* MarkdownRendererによって生成されるpタグのマージンを調整 */
+.yaml-table td p,
+.yaml-table li p {
+  margin: 0;
+}

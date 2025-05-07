@@ -5,6 +5,8 @@ import {
 	Setting,
 	MarkdownPostProcessorContext,
 	MarkdownView,
+	MarkdownRenderer,
+	Component
 } from 'obsidian';
 import * as yaml from 'js-yaml';
 
@@ -37,17 +39,40 @@ export default class YAMLTablePlugin extends Plugin {
 
 	// Processor to convert YAML to HTML table or list
 	yamlTableProcessor(source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext) {
+		let captionText: string | null = null;
+		const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+		if (view) {
+			const sectionInfo = ctx.getSectionInfo(el);
+			if (sectionInfo) {
+				const langLine = view.editor.getLine(sectionInfo.lineStart);
+				const langPattern = new RegExp('^```\\s*' + this.settings.language + ':\\s*(.+)');
+				const match = langLine.match(langPattern);
+				if (match && match[1]) {
+					captionText = match[1].trim();
+				}
+			}
+		}
+
 		try {
+			el.empty(); // Clear any previous content
+
+			if (captionText) {
+				const captionEl = document.createElement('div');
+				captionEl.className = 'yaml-table-caption';
+				captionEl.textContent = captionText;
+				el.appendChild(captionEl);
+			}
+
 			const data = yaml.load(source);
 
 			let renderedElement: HTMLElement | null = null;
 
 			if (Array.isArray(data)) {
 				// Handle top-level array data
-				renderedElement = this.createHTMLElementForArray(data);
+				renderedElement = this.createHTMLElementForArray(data, ctx.sourcePath, this);
 			} else if (data !== null && typeof data === 'object') {
 				// Handle top-level object data
-				renderedElement = this.createTableFromObject(data as Record<string, unknown>);
+				renderedElement = this.createTableFromObject(data as Record<string, unknown>, ctx.sourcePath, this);
 			}
 
 			// Add .yaml-table class if the rendered element is a TABLE
@@ -58,9 +83,9 @@ export default class YAMLTablePlugin extends Plugin {
 			if (renderedElement) {
 				// Add the generated element to DOM within a container for click handling
 				const containerEl = document.createElement('div');
-				containerEl.className = 'yaml-table-container'; // Keep container for consistent styling/handling
+				containerEl.className = 'yaml-table-container'; 
 				containerEl.appendChild(renderedElement);
-				el.appendChild(containerEl);
+				el.appendChild(containerEl); // containerEl (with table) is appended after caption
 
 				containerEl.addEventListener('click', (event) => {
 					// Switch to code block editing mode
@@ -77,12 +102,11 @@ export default class YAMLTablePlugin extends Plugin {
 				// Handle cases where data is not object/array or is empty
 				const infoDiv = document.createElement('div');
 				infoDiv.textContent = 'No data to display or unsupported data type.';
-				infoDiv.className = 'yaml-table-info'; // Use a different class for info messages
-				el.appendChild(infoDiv);
+				infoDiv.className = 'yaml-table-info';
+				el.appendChild(infoDiv); // infoDiv is appended after caption
 			}
 
 		} catch (e: unknown) { // Use unknown for better type safety
-			// Error handling
 			const errorDiv = document.createElement('div');
 			if (e instanceof Error) {
 				errorDiv.textContent = `YAML parsing error: ${e.message}`;
@@ -95,7 +119,7 @@ export default class YAMLTablePlugin extends Plugin {
 	}
 
 	// Creates a TABLE element specifically for JS objects (key-value pairs)
-	createTableFromObject(data: Record<string, unknown>): HTMLTableElement | null {
+	createTableFromObject(data: Record<string, unknown>, sourcePath: string, component: Component): HTMLTableElement | null {
 		if (Object.keys(data).length === 0) {
 			return null; // Return null for empty objects
 		}
@@ -114,14 +138,14 @@ export default class YAMLTablePlugin extends Plugin {
 
 				const valueCell = row.insertCell();
 				// Explicitly pass the object's value to renderValue
-				this.renderValue(data[key], valueCell);
+				this.renderValue(data[key], valueCell, sourcePath, component);
 			}
 		}
 		return table;
 	}
 
 	// Creates a TABLE (for object arrays) or UL (for simple arrays)
-	createHTMLElementForArray(data: unknown[]): HTMLElement | null {
+	createHTMLElementForArray(data: unknown[], sourcePath: string, component: Component): HTMLElement | null {
 		if (data.length === 0) {
 			// Optionally return an element indicating emptiness, or null
 			const emptyMsg = document.createElement('span');
@@ -164,7 +188,7 @@ export default class YAMLTablePlugin extends Plugin {
 					keys.forEach(key => {
 						const cell = row.insertCell();
 						if (Object.prototype.hasOwnProperty.call(itemRecord, key)) {
-							this.renderValue(itemRecord[key], cell);
+							this.renderValue(itemRecord[key], cell, sourcePath, component);
 						} else {
 							cell.textContent = ''; // Blank for missing keys
 						}
@@ -179,7 +203,7 @@ export default class YAMLTablePlugin extends Plugin {
 			const list = document.createElement('ul');
 			data.forEach(item => {
 				const li = document.createElement('li');
-				this.renderValue(item, li); // Render each item
+				this.renderValue(item, li, sourcePath, component); // Render each item
 				list.appendChild(li);
 			});
 			return list;
@@ -187,12 +211,12 @@ export default class YAMLTablePlugin extends Plugin {
 	}
 
 	// Renders a value (primitive, object, or array) into a given container element
-	renderValue(value: unknown, container: HTMLElement) {
+	renderValue(value: unknown, container: HTMLElement, sourcePath: string, component: Component) {
 		if (value === null || value === undefined) {
 			container.textContent = ''; // Render null/undefined as empty
 		} else if (Array.isArray(value)) {
 			// Value is an array -> render as nested table or list
-			const nestedElement = this.createHTMLElementForArray(value);
+			const nestedElement = this.createHTMLElementForArray(value, sourcePath, component);
 			if (nestedElement) {
 				container.appendChild(nestedElement);
 			} else {
@@ -201,7 +225,7 @@ export default class YAMLTablePlugin extends Plugin {
 			}
 		} else if (typeof value === 'object' && value !== null) {
 			// Value is an object -> render as nested table
-			const nestedTable = this.createTableFromObject(value as Record<string, unknown>);
+			const nestedTable = this.createTableFromObject(value as Record<string, unknown>, sourcePath, component);
 			if (nestedTable) {
 				// No need to add 'yaml-nested-table' class anymore
 				container.appendChild(nestedTable);
@@ -211,7 +235,7 @@ export default class YAMLTablePlugin extends Plugin {
 			}
 		} else {
 			// Handle simple values (string, number, boolean)
-			container.textContent = String(value);
+			MarkdownRenderer.renderMarkdown(String(value), container, sourcePath, component);
 		}
 	}
 }

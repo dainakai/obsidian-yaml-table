@@ -2664,13 +2664,33 @@ var YAMLTablePlugin = class extends import_obsidian.Plugin {
     await this.saveData(this.settings);
   }
   yamlTableProcessor(source, el, ctx) {
+    let captionText = null;
+    const view = this.app.workspace.getActiveViewOfType(import_obsidian.MarkdownView);
+    if (view) {
+      const sectionInfo = ctx.getSectionInfo(el);
+      if (sectionInfo) {
+        const langLine = view.editor.getLine(sectionInfo.lineStart);
+        const langPattern = new RegExp("^```\\s*" + this.settings.language + ":\\s*(.+)");
+        const match = langLine.match(langPattern);
+        if (match && match[1]) {
+          captionText = match[1].trim();
+        }
+      }
+    }
     try {
+      el.empty();
+      if (captionText) {
+        const captionEl = document.createElement("div");
+        captionEl.className = "yaml-table-caption";
+        captionEl.textContent = captionText;
+        el.appendChild(captionEl);
+      }
       const data = load(source);
       let renderedElement = null;
       if (Array.isArray(data)) {
-        renderedElement = this.createHTMLElementForArray(data);
+        renderedElement = this.createHTMLElementForArray(data, ctx.sourcePath, this);
       } else if (data !== null && typeof data === "object") {
-        renderedElement = this.createTableFromObject(data);
+        renderedElement = this.createTableFromObject(data, ctx.sourcePath, this);
       }
       if (renderedElement instanceof HTMLTableElement) {
         renderedElement.classList.add("yaml-table");
@@ -2682,12 +2702,12 @@ var YAMLTablePlugin = class extends import_obsidian.Plugin {
         el.appendChild(containerEl);
         containerEl.addEventListener("click", (event) => {
           var _a;
-          const view = this.app.workspace.getActiveViewOfType(import_obsidian.MarkdownView);
-          if (view) {
+          const view2 = this.app.workspace.getActiveViewOfType(import_obsidian.MarkdownView);
+          if (view2) {
             const pos = (_a = ctx.getSectionInfo(el)) == null ? void 0 : _a.lineStart;
             if (pos !== void 0) {
-              view.editor.setCursor(pos);
-              view.editor.focus();
+              view2.editor.setCursor(pos);
+              view2.editor.focus();
             }
           }
         });
@@ -2708,7 +2728,7 @@ var YAMLTablePlugin = class extends import_obsidian.Plugin {
       el.appendChild(errorDiv);
     }
   }
-  createTableFromObject(data) {
+  createTableFromObject(data, sourcePath, component) {
     if (Object.keys(data).length === 0) {
       return null;
     }
@@ -2722,12 +2742,12 @@ var YAMLTablePlugin = class extends import_obsidian.Plugin {
         keyCell.textContent = key;
         row.appendChild(keyCell);
         const valueCell = row.insertCell();
-        this.renderValue(data[key], valueCell);
+        this.renderValue(data[key], valueCell, sourcePath, component);
       }
     }
     return table;
   }
-  createHTMLElementForArray(data) {
+  createHTMLElementForArray(data, sourcePath, component) {
     if (data.length === 0) {
       const emptyMsg = document.createElement("span");
       emptyMsg.textContent = "(empty array)";
@@ -2760,7 +2780,7 @@ var YAMLTablePlugin = class extends import_obsidian.Plugin {
           keys.forEach((key) => {
             const cell = row.insertCell();
             if (Object.prototype.hasOwnProperty.call(itemRecord, key)) {
-              this.renderValue(itemRecord[key], cell);
+              this.renderValue(itemRecord[key], cell, sourcePath, component);
             } else {
               cell.textContent = "";
             }
@@ -2772,31 +2792,31 @@ var YAMLTablePlugin = class extends import_obsidian.Plugin {
       const list = document.createElement("ul");
       data.forEach((item) => {
         const li = document.createElement("li");
-        this.renderValue(item, li);
+        this.renderValue(item, li, sourcePath, component);
         list.appendChild(li);
       });
       return list;
     }
   }
-  renderValue(value, container) {
+  renderValue(value, container, sourcePath, component) {
     if (value === null || value === void 0) {
       container.textContent = "";
     } else if (Array.isArray(value)) {
-      const nestedElement = this.createHTMLElementForArray(value);
+      const nestedElement = this.createHTMLElementForArray(value, sourcePath, component);
       if (nestedElement) {
         container.appendChild(nestedElement);
       } else {
         container.textContent = "(empty array)";
       }
     } else if (typeof value === "object" && value !== null) {
-      const nestedTable = this.createTableFromObject(value);
+      const nestedTable = this.createTableFromObject(value, sourcePath, component);
       if (nestedTable) {
         container.appendChild(nestedTable);
       } else {
         container.textContent = "(empty object)";
       }
     } else {
-      container.textContent = String(value);
+      import_obsidian.MarkdownRenderer.renderMarkdown(String(value), container, sourcePath, component);
     }
   }
 };
