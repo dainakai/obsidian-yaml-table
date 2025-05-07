@@ -29,12 +29,6 @@
   background-color: var(--background-secondary-alt, hsl(var(--accent-h), 60%, 95%)) !important; /* !important を追加 */
   color: var(--text-muted, hsl(var(--accent-h), 15%, 40%)); /* アクセント基準の少し濃い色かMuted */
 }
-/* トップレベルテーブルのキー列ヘッダー (tbody > tr > th) */
-.yaml-table > tbody > tr > th {
-    /* 必要であればトップレベルのキー列に特化したスタイルを追加 */
-    /* width: 150px; */ /* 例: キー列の幅を固定 */
-    /* background-color: ... !important; もし上記で不足ならここにも追加 */
-}
 
 
 /* ネストしたテーブルのスタイル (.yaml-table の中にある table) */
