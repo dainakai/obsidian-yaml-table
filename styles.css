@@ -133,3 +133,9 @@
   color: var(--text-normal, #333333);
   font-size: 1.1em; /* 少し大きめのフォントサイズ */
 }
+
+/* MarkdownRendererによって生成されるpタグのマージンを調整 */
+.yaml-table td p,
+.yaml-table li p {
+  margin: 0;
+}

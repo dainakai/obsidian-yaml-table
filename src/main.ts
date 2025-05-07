@@ -5,6 +5,8 @@ import {
 	Setting,
 	MarkdownPostProcessorContext,
 	MarkdownView,
+	MarkdownRenderer,
+	Component
 } from 'obsidian';
 import * as yaml from 'js-yaml';
 
@@ -67,10 +69,10 @@ export default class YAMLTablePlugin extends Plugin {
 
 			if (Array.isArray(data)) {
 				// Handle top-level array data
-				renderedElement = this.createHTMLElementForArray(data);
+				renderedElement = this.createHTMLElementForArray(data, ctx.sourcePath, this);
 			} else if (data !== null && typeof data === 'object') {
 				// Handle top-level object data
-				renderedElement = this.createTableFromObject(data as Record<string, unknown>);
+				renderedElement = this.createTableFromObject(data as Record<string, unknown>, ctx.sourcePath, this);
 			}
 
 			// Add .yaml-table class if the rendered element is a TABLE
@@ -117,7 +119,7 @@ export default class YAMLTablePlugin extends Plugin {
 	}
 
 	// Creates a TABLE element specifically for JS objects (key-value pairs)
-	createTableFromObject(data: Record<string, unknown>): HTMLTableElement | null {
+	createTableFromObject(data: Record<string, unknown>, sourcePath: string, component: Component): HTMLTableElement | null {
 		if (Object.keys(data).length === 0) {
 			return null; // Return null for empty objects
 		}
@@ -136,14 +138,14 @@ export default class YAMLTablePlugin extends Plugin {
 
 				const valueCell = row.insertCell();
 				// Explicitly pass the object's value to renderValue
-				this.renderValue(data[key], valueCell);
+				this.renderValue(data[key], valueCell, sourcePath, component);
 			}
 		}
 		return table;
 	}
 
 	// Creates a TABLE (for object arrays) or UL (for simple arrays)
-	createHTMLElementForArray(data: unknown[]): HTMLElement | null {
+	createHTMLElementForArray(data: unknown[], sourcePath: string, component: Component): HTMLElement | null {
 		if (data.length === 0) {
 			// Optionally return an element indicating emptiness, or null
 			const emptyMsg = document.createElement('span');
@@ -186,7 +188,7 @@ export default class YAMLTablePlugin extends Plugin {
 					keys.forEach(key => {
 						const cell = row.insertCell();
 						if (Object.prototype.hasOwnProperty.call(itemRecord, key)) {
-							this.renderValue(itemRecord[key], cell);
+							this.renderValue(itemRecord[key], cell, sourcePath, component);
 						} else {
 							cell.textContent = ''; // Blank for missing keys
 						}
@@ -201,7 +203,7 @@ export default class YAMLTablePlugin extends Plugin {
 			const list = document.createElement('ul');
 			data.forEach(item => {
 				const li = document.createElement('li');
-				this.renderValue(item, li); // Render each item
+				this.renderValue(item, li, sourcePath, component); // Render each item
 				list.appendChild(li);
 			});
 			return list;
@@ -209,12 +211,12 @@ export default class YAMLTablePlugin extends Plugin {
 	}
 
 	// Renders a value (primitive, object, or array) into a given container element
-	renderValue(value: unknown, container: HTMLElement) {
+	renderValue(value: unknown, container: HTMLElement, sourcePath: string, component: Component) {
 		if (value === null || value === undefined) {
 			container.textContent = ''; // Render null/undefined as empty
 		} else if (Array.isArray(value)) {
 			// Value is an array -> render as nested table or list
-			const nestedElement = this.createHTMLElementForArray(value);
+			const nestedElement = this.createHTMLElementForArray(value, sourcePath, component);
 			if (nestedElement) {
 				container.appendChild(nestedElement);
 			} else {
@@ -223,7 +225,7 @@ export default class YAMLTablePlugin extends Plugin {
 			}
 		} else if (typeof value === 'object' && value !== null) {
 			// Value is an object -> render as nested table
-			const nestedTable = this.createTableFromObject(value as Record<string, unknown>);
+			const nestedTable = this.createTableFromObject(value as Record<string, unknown>, sourcePath, component);
 			if (nestedTable) {
 				// No need to add 'yaml-nested-table' class anymore
 				container.appendChild(nestedTable);
@@ -233,7 +235,7 @@ export default class YAMLTablePlugin extends Plugin {
 			}
 		} else {
 			// Handle simple values (string, number, boolean)
-			container.textContent = String(value);
+			MarkdownRenderer.renderMarkdown(String(value), container, sourcePath, component);
 		}
 	}
 }
