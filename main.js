@@ -2664,7 +2664,27 @@ var YAMLTablePlugin = class extends import_obsidian.Plugin {
     await this.saveData(this.settings);
   }
   yamlTableProcessor(source, el, ctx) {
+    let captionText = null;
+    const view = this.app.workspace.getActiveViewOfType(import_obsidian.MarkdownView);
+    if (view) {
+      const sectionInfo = ctx.getSectionInfo(el);
+      if (sectionInfo) {
+        const langLine = view.editor.getLine(sectionInfo.lineStart);
+        const langPattern = new RegExp("^```\\s*" + this.settings.language + ":\\s*(.+)");
+        const match = langLine.match(langPattern);
+        if (match && match[1]) {
+          captionText = match[1].trim();
+        }
+      }
+    }
     try {
+      el.empty();
+      if (captionText) {
+        const captionEl = document.createElement("div");
+        captionEl.className = "yaml-table-caption";
+        captionEl.textContent = captionText;
+        el.appendChild(captionEl);
+      }
       const data = load(source);
       let renderedElement = null;
       if (Array.isArray(data)) {
@@ -2682,12 +2702,12 @@ var YAMLTablePlugin = class extends import_obsidian.Plugin {
         el.appendChild(containerEl);
         containerEl.addEventListener("click", (event) => {
           var _a;
-          const view = this.app.workspace.getActiveViewOfType(import_obsidian.MarkdownView);
-          if (view) {
+          const view2 = this.app.workspace.getActiveViewOfType(import_obsidian.MarkdownView);
+          if (view2) {
             const pos = (_a = ctx.getSectionInfo(el)) == null ? void 0 : _a.lineStart;
             if (pos !== void 0) {
-              view.editor.setCursor(pos);
-              view.editor.focus();
+              view2.editor.setCursor(pos);
+              view2.editor.focus();
             }
           }
         });

@@ -37,7 +37,30 @@ export default class YAMLTablePlugin extends Plugin {
 
 	// Processor to convert YAML to HTML table or list
 	yamlTableProcessor(source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext) {
+		let captionText: string | null = null;
+		const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+		if (view) {
+			const sectionInfo = ctx.getSectionInfo(el);
+			if (sectionInfo) {
+				const langLine = view.editor.getLine(sectionInfo.lineStart);
+				const langPattern = new RegExp('^```\\s*' + this.settings.language + ':\\s*(.+)');
+				const match = langLine.match(langPattern);
+				if (match && match[1]) {
+					captionText = match[1].trim();
+				}
+			}
+		}
+
 		try {
+			el.empty(); // Clear any previous content
+
+			if (captionText) {
+				const captionEl = document.createElement('div');
+				captionEl.className = 'yaml-table-caption';
+				captionEl.textContent = captionText;
+				el.appendChild(captionEl);
+			}
+
 			const data = yaml.load(source);
 
 			let renderedElement: HTMLElement | null = null;
@@ -58,9 +81,9 @@ export default class YAMLTablePlugin extends Plugin {
 			if (renderedElement) {
 				// Add the generated element to DOM within a container for click handling
 				const containerEl = document.createElement('div');
-				containerEl.className = 'yaml-table-container'; // Keep container for consistent styling/handling
+				containerEl.className = 'yaml-table-container'; 
 				containerEl.appendChild(renderedElement);
-				el.appendChild(containerEl);
+				el.appendChild(containerEl); // containerEl (with table) is appended after caption
 
 				containerEl.addEventListener('click', (event) => {
 					// Switch to code block editing mode
@@ -77,12 +100,11 @@ export default class YAMLTablePlugin extends Plugin {
 				// Handle cases where data is not object/array or is empty
 				const infoDiv = document.createElement('div');
 				infoDiv.textContent = 'No data to display or unsupported data type.';
-				infoDiv.className = 'yaml-table-info'; // Use a different class for info messages
-				el.appendChild(infoDiv);
+				infoDiv.className = 'yaml-table-info';
+				el.appendChild(infoDiv); // infoDiv is appended after caption
 			}
 
 		} catch (e: unknown) { // Use unknown for better type safety
-			// Error handling
 			const errorDiv = document.createElement('div');
 			if (e instanceof Error) {
 				errorDiv.textContent = `YAML parsing error: ${e.message}`;

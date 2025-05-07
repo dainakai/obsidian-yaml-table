@@ -123,3 +123,13 @@
   cursor: default;
   margin-bottom: 1em; /* コードブロック下の要素との間隔 */
 }
+
+/* テーブルキャプションのスタイル */
+.yaml-table-caption {
+  text-align: center;
+  font-weight: bold;
+  padding: 8px 0;
+  margin-bottom: 8px; /* キャプションとテーブルの間のマージン */
+  color: var(--text-normal, #333333);
+  font-size: 1.1em; /* 少し大きめのフォントサイズ */
+}

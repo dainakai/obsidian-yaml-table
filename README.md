@@ -30,7 +30,20 @@ tasks:
 ```
 ````
 
-2. In Reading View or Live Preview, this code block will automatically be displayed as an HTML table.
+   To add a caption to your table, specify it after a colon in the language identifier line:
+
+````markdown
+```yaml-table: Table 1. Project Plan Details
+title: Project Plan
+tasks:
+  - name: Task 1
+    due: 2023-06-01
+  - name: Task 2
+    due: 2023-06-15
+```
+````
+
+2. In Reading View or Live Preview, this code block will automatically be displayed as an HTML table, with the caption centered above it.
 3. Click on the table to edit the original YAML code.
 
 ## Installation
@@ -62,15 +75,17 @@ author: dainakai
 date: 2023-06-01
 ```
 
-### List of Objects
+### List of Objects with Caption
 
-```yaml-table
+````markdown
+```yaml-table: Table 2. Event Schedule
 schedule:
   - time: Mid-May
     action: Publish blog post
   - time: Late May
     action: Host event
 ```
+````
 
 ### Nested Objects
 
