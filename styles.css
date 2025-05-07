@@ -128,8 +128,8 @@
 .yaml-table-caption {
   text-align: center;
   font-weight: bold;
-  padding: 8px 0;
-  margin-bottom: 8px; /* キャプションとテーブルの間のマージン */
+  padding: 8px 0 0 0;
+  margin-bottom: 0px; /* キャプションとテーブルの間のマージンを調整 */
   color: var(--text-normal, #333333);
   font-size: 1.1em; /* 少し大きめのフォントサイズ */
 }
