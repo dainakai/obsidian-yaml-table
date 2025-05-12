@@ -2739,7 +2739,7 @@ var YAMLTablePlugin = class extends import_obsidian.Plugin {
         const row = tbody.insertRow();
         const keyCell = document.createElement("th");
         keyCell.setAttribute("scope", "row");
-        keyCell.textContent = key;
+        import_obsidian.MarkdownRenderer.renderMarkdown(String(key), keyCell, sourcePath, component);
         row.appendChild(keyCell);
         const valueCell = row.insertCell();
         this.renderValue(data[key], valueCell, sourcePath, component);
@@ -2769,7 +2769,7 @@ var YAMLTablePlugin = class extends import_obsidian.Plugin {
       const headerRow = thead.insertRow();
       keys.forEach((key) => {
         const th = document.createElement("th");
-        th.textContent = key;
+        import_obsidian.MarkdownRenderer.renderMarkdown(String(key), th, sourcePath, component);
         headerRow.appendChild(th);
       });
       const tbody = table.createTBody();

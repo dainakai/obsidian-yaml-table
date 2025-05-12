@@ -130,6 +130,7 @@
 
 /* MarkdownRendererによって生成されるpタグのマージンを調整 */
 .yaml-table td p,
+.yaml-table th p,
 .yaml-table li p {
   margin: 0;
 }
