@@ -2749,9 +2749,7 @@ var YAMLTablePlugin = class extends import_obsidian.Plugin {
   }
   createHTMLElementForArray(data, sourcePath, component) {
     if (data.length === 0) {
-      const emptyMsg = document.createElement("span");
-      emptyMsg.textContent = "(empty array)";
-      return emptyMsg;
+      return null;
     }
     const firstItem = data[0];
     const isObjectArray = firstItem !== null && typeof firstItem === "object" && !Array.isArray(firstItem);

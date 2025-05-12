@@ -147,11 +147,7 @@ export default class YAMLTablePlugin extends Plugin {
 	// Creates a TABLE (for object arrays) or UL (for simple arrays)
 	createHTMLElementForArray(data: unknown[], sourcePath: string, component: Component): HTMLElement | null {
 		if (data.length === 0) {
-			// Optionally return an element indicating emptiness, or null
-			const emptyMsg = document.createElement('span');
-			emptyMsg.textContent = '(empty array)';
-			return emptyMsg;
-			// return null; // Or return null if nothing should be displayed
+			return null; // Or return null if nothing should be displayed
 		}
 
 		const firstItem = data[0];
