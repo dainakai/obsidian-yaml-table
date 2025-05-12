@@ -133,7 +133,7 @@ export default class YAMLTablePlugin extends Plugin {
 
 				const keyCell = document.createElement('th');
 				keyCell.setAttribute('scope', 'row');
-				keyCell.textContent = key;
+				MarkdownRenderer.renderMarkdown(String(key), keyCell, sourcePath, component);
 				row.appendChild(keyCell);
 
 				const valueCell = row.insertCell();
@@ -147,11 +147,7 @@ export default class YAMLTablePlugin extends Plugin {
 	// Creates a TABLE (for object arrays) or UL (for simple arrays)
 	createHTMLElementForArray(data: unknown[], sourcePath: string, component: Component): HTMLElement | null {
 		if (data.length === 0) {
-			// Optionally return an element indicating emptiness, or null
-			const emptyMsg = document.createElement('span');
-			emptyMsg.textContent = '(empty array)';
-			return emptyMsg;
-			// return null; // Or return null if nothing should be displayed
+			return null; // Or return null if nothing should be displayed
 		}
 
 		const firstItem = data[0];
@@ -175,7 +171,7 @@ export default class YAMLTablePlugin extends Plugin {
 			const headerRow = thead.insertRow();
 			keys.forEach(key => {
 				const th = document.createElement('th');
-				th.textContent = key;
+				MarkdownRenderer.renderMarkdown(String(key), th, sourcePath, component);
 				headerRow.appendChild(th);
 			});
 

@@ -130,6 +130,38 @@
 
 /* MarkdownRendererによって生成されるpタグのマージンを調整 */
 .yaml-table td p,
+.yaml-table th p,
 .yaml-table li p {
   margin: 0;
 }
+
+/* --- テーマ別調整 --- */
+
+/* ライトテーマ時のテーブルヘッダー背景色調整 */
+.theme-light .yaml-table th,
+.theme-light .yaml-table td > table > thead > tr > th,
+.theme-light .yaml-table table tbody th[scope="row"] {
+  /* 元の hsl(var(--accent-h), 60%, 95%) より少し濃くするために輝度を調整 */
+  /* var(--accent-s) が未定義の場合のフォールバックとして 60% を使用 */
+  background-color: color-mix(in srgb, var(--background-secondary-alt) 95%, black) !important;
+}
+
+/* ダークテーマ時のテーブル枠線・罫線色調整 */
+.theme-dark .yaml-table,
+.theme-dark .yaml-table th,
+.theme-dark .yaml-table td,
+.theme-dark .yaml-table table, /* ネストしたテーブルの枠線も含む */
+.theme-dark .yaml-table table th,
+.theme-dark .yaml-table table td {
+  /* thの背景色 (例: --background-secondary-alt のダークテーマ時の値) より明るく見えるように調整 */
+  /* 安全策として、半透明の白を使用 */
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+/*
+  注意:
+  - ダークテーマ時の `th` の背景色は `var(--background-secondary-alt)` がテーマによって適切に暗くなることを期待しています。
+    もし `th` の背景色が明るすぎる、または暗すぎる場合は、`.theme-dark .yaml-table th` などに対して `background-color` を別途指定する必要があります。
+  - `border-color` の変更は、`border` プロパティ全体を上書きしないように注意が必要です。
+    元のスタイルが `border: 1px solid var(...)` なので、`border-color` のみの変更で問題ないはずです。
+*/
