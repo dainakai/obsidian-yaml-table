@@ -66,7 +66,7 @@ The plugin settings offer the following option:
 ### Basic Key-Value
 
 ```yaml-table
-title: blog_idea_parking_lot
+title: table title
 author: hogehoge
 date: 2025-05-07
 ```
