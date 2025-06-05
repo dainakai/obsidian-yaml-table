@@ -10,6 +10,7 @@ An Obsidian plugin that renders YAML code blocks as HTML tables for better visua
   - Simple key-value pairs
   - Lists (both simple values and object lists)
   - Nested objects
+- Automatically adds horizontal scrolling when tables exceed the note width
 
 ## Usage
 
