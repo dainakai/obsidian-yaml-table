@@ -1,7 +1,7 @@
 {
   "id": "yaml-table",
   "name": "YAML Table",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "minAppVersion": "0.15.0",
   "description": "Transform YAML code blocks into HTML tables for better visualization",
   "author": "dainakai",
