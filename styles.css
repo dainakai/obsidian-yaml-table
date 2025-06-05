@@ -99,7 +99,7 @@
 .yaml-table ul ol,
 .yaml-table ol ol,
 .yaml-table ol ul {
-  margin: 2px 0 2px 1em; /* 上下マージンと左インデント */
+  margin: 2px 0; /* 上下マージンを維持し左インデントを削除 */
 }
 
 /* エラーメッセージのスタイル */
