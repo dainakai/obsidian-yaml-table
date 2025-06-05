@@ -3,7 +3,9 @@
 /* 基本テーブルスタイル (.yaml-table が適用された最上位のテーブル) */
 .yaml-table {
   border-collapse: collapse;
-  width: 100%;
+  /* Allow the table to expand beyond the container when needed */
+  width: max-content;
+  min-width: 100%;
   margin: 0; /* 上下左右のマージンを削除 */
   font-size: 0.9em;
   border: 1px solid var(--background-modifier-border, #e0e0e0); /* Obsidianの枠線色変数を使用 */
@@ -116,6 +118,8 @@
 .yaml-table-container {
   cursor: default;
   margin-bottom: 1em; /* コードブロック下の要素との間隔 */
+  /* Enable horizontal scrolling when the table exceeds the viewport width */
+  overflow-x: auto;
 }
 
 /* テーブルキャプションのスタイル */
