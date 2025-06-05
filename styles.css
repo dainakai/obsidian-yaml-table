@@ -87,7 +87,7 @@
 .yaml-table ul,
 .yaml-table ol {
   margin: 4px 0; /* td直下リストのマージン */
-  padding-left: 1.2em;
+  padding-left: 0; /* 余計なインデントを除去 */
   list-style-position: inside;
 }
 .yaml-table ul li,
@@ -99,7 +99,7 @@
 .yaml-table ul ol,
 .yaml-table ol ol,
 .yaml-table ol ul {
-  margin: 2px 0 2px 1em; /* 上下マージンと左インデント */
+  margin: 2px 0; /* 上下マージンを維持し左インデントを削除 */
 }
 
 /* エラーメッセージのスタイル */
@@ -133,6 +133,7 @@
 .yaml-table th p,
 .yaml-table li p {
   margin: 0;
+  display: inline; /* 箇条書きの記号と内容を同じ行に表示する */
 }
 
 /* --- テーマ別調整 --- */
